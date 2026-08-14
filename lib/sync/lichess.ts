@@ -18,7 +18,7 @@ export async function syncLichess(username: string, onProgress?: (msg: string) =
 
   onProgress?.("Fetching games...");
 
-  const url = `${BASE}/games/user/${lower}?since=${since}&pgnInJson=true&clocks=true&opening=true&max=500`;
+  const url = `${BASE}/games/user/${lower}?since=${since}&pgnInJson=true&clocks=true&opening=true&max=2000`;
 
   const res = await fetch(url, {
     headers: { Accept: "application/x-ndjson" }

@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
 import { db, OpeningNode, OpeningTree } from "@/lib/db";
+import { computeHeatmap, getHeatmapColor, NodeStats } from "@/lib/chess/heatmap";
 
 interface TreeNode {
   id?: number;
@@ -51,13 +52,14 @@ function buildTree(nodes: OpeningNode[]): TreeNode[] {
 }
 
 function TreeLine({
-  nodes, depth, selectedId, onSelect, onRenameVariation,
+  nodes, depth, selectedId, onSelect, onRenameVariation, heatmap,
 }: {
   nodes: TreeNode[];
   depth: number;
   selectedId?: number;
   onSelect: (n: TreeNode) => void;
   onRenameVariation: (n: TreeNode) => void;
+  heatmap?: Record<number, NodeStats>;
 }) {
   if (!nodes.length) return null;
   return (
@@ -125,6 +127,20 @@ function TreeLine({
                     {node.children!.length} lines
                   </span>
                 )}
+                {heatmap && node.id && (() => {
+                  const s = heatmap[node.id!];
+                  if (!s) return <span key="no-data" style={{ fontSize: 9, color: "var(--text-3)", opacity: 0.4 }}>–</span>;
+                  const color = getHeatmapColor(s.score);
+                  return (
+                    <div key="heatmap" title={`${s.wins}W ${s.draws}D ${s.losses}L (${s.total} games)`}
+                      style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      <div style={{ width: 24, height: 3, borderRadius: 2, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                        <div style={{ width: `${s.score}%`, height: "100%", background: color, borderRadius: 2 }} />
+                      </div>
+                      <span style={{ fontSize: 9, color, fontWeight: 700 }}>{s.score}%</span>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
             {node.children && node.children.length > 0 && (
@@ -134,6 +150,7 @@ function TreeLine({
                 selectedId={selectedId}
                 onSelect={onSelect}
                 onRenameVariation={onRenameVariation}
+                heatmap={heatmap}
               />
             )}
           </div>
@@ -159,6 +176,9 @@ export default function RepertoireBuilder({ boardTheme = { dark: "#1e3a5f", ligh
   const [editingNote, setEditingNote] = useState("");
   const [renamingNode, setRenamingNode] = useState<TreeNode | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  const [heatmap, setHeatmap] = useState<Record<number, NodeStats>>({});
+  const [showHeatmap, setShowHeatmap] = useState(false);
+  const [heatmapLoading, setHeatmapLoading] = useState(false);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [possibleMoves, setPossibleMoves] = useState<string[]>([]);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
@@ -191,6 +211,21 @@ export default function RepertoireBuilder({ boardTheme = { dark: "#1e3a5f", ligh
   useEffect(() => {
     setTreeData(buildTree(nodes));
   }, [nodes]);
+
+  useEffect(() => {
+    if (!selectedTree || !showHeatmap || nodes.length === 0) return;
+    setHeatmapLoading(true);
+    setHeatmap({});
+    const timer = setTimeout(() => {
+      computeHeatmap(nodes, selectedTree.color).then(result => {
+        const normalized: Record<number, NodeStats> = {};
+        Object.entries(result).forEach(([k, v]) => { normalized[Number(k)] = v; });
+        setHeatmap(normalized);
+        setHeatmapLoading(false);
+      });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [selectedTree, showHeatmap, nodes]);
 
   useEffect(() => {
     if (selectedNode) setEditingNote(selectedNode.notes || "");
@@ -635,8 +670,22 @@ export default function RepertoireBuilder({ boardTheme = { dark: "#1e3a5f", ligh
             padding: "10px 14px 8px",
             borderBottom: "1px solid var(--glass-border)",
             fontSize: 10, fontWeight: 700, color: "var(--text-3)", letterSpacing: 1,
+            display: "flex", alignItems: "center", justifyContent: "space-between",
           }}>
-            LINES {selectedTree ? `— ${selectedTree.name}` : ""}
+            <span>LINES {selectedTree ? `— ${selectedTree.name}` : ""}</span>
+            {selectedTree && (
+              <button
+                onClick={() => setShowHeatmap(h => !h)}
+                style={{
+                  fontSize: 10, padding: "2px 8px", borderRadius: 6, border: "none",
+                  background: showHeatmap ? "var(--accent)" : "var(--glass)",
+                  color: showHeatmap ? "white" : "var(--text-3)",
+                  cursor: "pointer", fontWeight: 600,
+                }}
+              >
+                {heatmapLoading ? "Loading..." : showHeatmap ? "🌡 On" : "🌡 Heatmap"}
+              </button>
+            )}
           </div>
           <div style={{ flex: 1, overflowY: "auto", padding: "8px 4px" }}>
             {!selectedTree && (
@@ -655,6 +704,7 @@ export default function RepertoireBuilder({ boardTheme = { dark: "#1e3a5f", ligh
               selectedId={selectedNode?.id}
               onSelect={onNodeSelect}
               onRenameVariation={handleRenameVariation}
+              heatmap={showHeatmap && Object.keys(heatmap).length > 0 ? heatmap : undefined}
             />
           </div>
         </div>
