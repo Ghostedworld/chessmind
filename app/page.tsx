@@ -16,10 +16,11 @@ const ChessBoard         = dynamic(() => import("@/components/board/ChessBoard")
 const RepertoirePage     = dynamic(() => import("@/app/repertoire/page"),                   { ssr: false });
 const FacingOpenings     = dynamic(() => import("@/components/board/FacingOpenings"),       { ssr: false });
 const HistoricalReplayer = dynamic(() => import("@/components/board/HistoricalReplayer"),   { ssr: false });
+const GambitLab = dynamic(() => import("@/features/gambit-lab/components/GambitLab"),       { ssr: false });
 const PlatformSync       = dynamic(() => import("@/components/sync/PlatformSync"),          { ssr: false });
 
 type Tab = "play" | "openings" | "train" | "stats" | "settings";
-type TrainSub = "facing" | "historical" | "tactics";
+type TrainSub = "facing" | "historical" | "tactics" | "gambit";
 
 function usePersistedState<T>(key: string, initial: T) {
   const [value, setValue] = useState<T>(() => {
@@ -297,6 +298,7 @@ export default function Home() {
                 { id:"facing",     label:"Facing Openings" },
                 { id:"historical", label:"Historical Games" },
                 { id:"tactics",    label:"Tactics"         },
+                { id:"gambit",     label:"Gambit Lab"      },
               ] as const).map(s => (
                 <button
                   key={s.id}
@@ -327,6 +329,9 @@ export default function Home() {
                   <div style={{ fontSize:14 }}>Tactics Engine — Phase 3</div>
                   <div style={{ fontSize:12, opacity:0.6 }}>Coming soon</div>
                 </div>
+              )}
+              {trainSub === "gambit" && (
+                <GambitLab boardTheme={boardTheme} />
               )}
             </div>
           </div>
