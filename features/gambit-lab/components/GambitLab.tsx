@@ -398,6 +398,7 @@ export default function GambitLab({ boardTheme = { dark: "#1e3a5f", light: "#4a7
         <div className="glass" style={{ borderRadius:14, padding:6, overflow:"hidden",
           boxShadow:"0 0 40px rgba(0,0,0,0.5)" }}>
           <Chessboard
+            key={fen}
             options={{
               position: fen,
               boardOrientation: playAs,
@@ -408,7 +409,7 @@ export default function GambitLab({ boardTheme = { dark: "#1e3a5f", light: "#4a7
               onPieceDrop: onDrop,
               onSquareClick,
               allowDragging: isPlayerTurn() && !isThinking,
-              animationDurationInMs: 180,
+              animationDurationInMs: 150,
             }}
           />
         </div>

@@ -40,6 +40,38 @@ export interface SavedGame {
   opening?: string;
 }
 
+export interface TacticsPuzzle {
+  id?: number;
+  fen: string;
+  playerColor: "white" | "black";
+  blunderMove: string;
+  bestMove: string;
+  cpLoss: number;
+  theme: string;
+  sourceGameId: number;
+  moveNumber: number;
+  attempts: number;
+  solved: boolean;
+  dueAt: Date;
+  addedAt: Date;
+}
+
+export interface TacticsPuzzle {
+  id?: number;
+  fen: string;
+  playerColor: "white" | "black";
+  blunderMove: string;
+  bestMove: string;
+  cpLoss: number;
+  theme: string;
+  sourceGameId: number;
+  moveNumber: number;
+  attempts: number;
+  solved: boolean;
+  dueAt: Date;
+  addedAt: Date;
+}
+
 export interface HistoricalGame {
   id?: number;
   pgn: string;
@@ -77,6 +109,8 @@ class ChessMindDB extends Dexie {
   settings!: Table<AppSettings>;
   platformAccounts!: Table<PlatformAccount>;
   historicalGames!: Table<HistoricalGame>;
+  tacticsPuzzles!: Table<TacticsPuzzle>;
+  tacticsPuzzles!: Table<TacticsPuzzle>;
 
   constructor() {
     super("ChessMindDB");
@@ -100,6 +134,24 @@ class ChessMindDB extends Dexie {
       settings: "++id, key",
       platformAccounts: "++id, platform, username",
       historicalGames: "++id, white, black, eco, source, addedAt",
+    });
+    this.version(4).stores({
+      openingTrees: "++id, name, color, createdAt",
+      openingNodes: "++id, treeId, parentId, fen, moveNumber",
+      games: "++id, result, playerColor, playedAt, source, platformGameId",
+      settings: "++id, key",
+      platformAccounts: "++id, platform, username",
+      historicalGames: "++id, white, black, eco, source, addedAt",
+      tacticsPuzzles: "++id, fen, playerColor, theme, solved, dueAt, addedAt",
+    });
+    this.version(4).stores({
+      openingTrees: "++id, name, color, createdAt",
+      openingNodes: "++id, treeId, parentId, fen, moveNumber",
+      games: "++id, result, playerColor, playedAt, source, platformGameId",
+      settings: "++id, key",
+      platformAccounts: "++id, platform, username",
+      historicalGames: "++id, white, black, eco, source, addedAt",
+      tacticsPuzzles: "++id, fen, playerColor, theme, solved, dueAt, addedAt",
     });
   }
 }

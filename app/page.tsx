@@ -16,7 +16,8 @@ const ChessBoard         = dynamic(() => import("@/components/board/ChessBoard")
 const RepertoirePage     = dynamic(() => import("@/app/repertoire/page"),                   { ssr: false });
 const FacingOpenings     = dynamic(() => import("@/components/board/FacingOpenings"),       { ssr: false });
 const HistoricalReplayer = dynamic(() => import("@/components/board/HistoricalReplayer"),   { ssr: false });
-const GambitLab = dynamic(() => import("@/features/gambit-lab/components/GambitLab"),       { ssr: false });
+const GambitLab      = dynamic(() => import("@/features/gambit-lab/components/GambitLab"),       { ssr: false });
+const TacticsEngine  = dynamic(() => import("@/features/tactics/components/TacticsEngine"),    { ssr: false });
 const PlatformSync       = dynamic(() => import("@/components/sync/PlatformSync"),          { ssr: false });
 
 type Tab = "play" | "openings" | "train" | "stats" | "settings";
@@ -324,11 +325,7 @@ export default function Home() {
                 <HistoricalReplayer boardTheme={boardTheme} />
               )}
               {trainSub === "tactics" && (
-                <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:8, color:"var(--text-3)" }}>
-                  <IconSwords size={32} opacity={0.3} />
-                  <div style={{ fontSize:14 }}>Tactics Engine — Phase 3</div>
-                  <div style={{ fontSize:12, opacity:0.6 }}>Coming soon</div>
-                </div>
+                <TacticsEngine />
               )}
               {trainSub === "gambit" && (
                 <GambitLab boardTheme={boardTheme} />
